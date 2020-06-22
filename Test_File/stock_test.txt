@@ -1,0 +1,33 @@
+<td colspan="3" width="100%"><table broder="0" cellpadding="4" cellspacing="1" width="100%">
+<tbody>
+	<tr align="center" bgcolor="#ffdb6f">
+		<td>時間</td>
+		<td>開</td>
+		<td>高</td>
+		<td>低</td>
+		<td>收</td>
+		<td>漲跌</td>
+		<td>量(張)</td>
+	</tr>
+
+	<tr align="center" bgcolor="#ffffff" height="25">
+		<td>13:30</td>
+		<td class="high">45.75</td>
+		<td class="high">45.75</td>
+		<td class="high">45.75</td>
+		<td class="high">45.75</td>
+		<td class="high">△0.75</td>
+		<td>1988</td>
+	</tr>
+
+	<tr align="center" bgcolor="#ffffff" height="25">
+		<td>13:25</td>
+		<td class="high">45.80</td>
+		<td class="high">45.90</td>
+		<td class="high">45.75</td>
+		<td class="high">45.85</td>
+		<td class="high">△0.85</td>
+		<td>449</td>
+	</tr>
+
+	<tr align="center" bgcolor="#ffffff" height="25"><td>13:24</td><td class="high">45.80</td><td 
