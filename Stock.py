@@ -7,11 +7,13 @@ Created on Thu Jun 18 15:46:44 2020
 
 import datetime
 year = datetime.datetime.today().year
-month = datetime.datetime.today().month
-day = datetime.datetime.today().day
+month = datetime.datetime.today().strftime("%m")
+day = datetime.datetime.today().strftime("%d")
 hour = datetime.datetime.today().hour
-minute = datetime.datetime.today().minute
+# minute = datetime.datetime.today().minute
+minute = datetime.datetime.today().strftime("%M")
 date = f'{year}_{month}_{day}'
+nowTime = f'{hour}:{minute}'
 
 stockNo = []
 stockName = []
@@ -22,6 +24,8 @@ with open("選股標的.csv", newline='') as csvfile:
         stockNo.append(row["編號"])
         stockName.append(row["名稱"])
 #        print(row["編號"], row["名稱"])
+
+stockValue = []
 
 import urllib.request as req
 import bs4
@@ -58,15 +62,25 @@ for no in range(len(stockNo)):
     trs = root.find_all("tr", align="center", bgcolor="#ffffff", height="25")
     
     time = []
-    quantity = []          
+    quantity = []  
+    value = []
+    variation = []   
+    first = True    
     for td in trs:
+        if first is True:
+            stockValue.append(td.find_all("td")[4].string)
+            first = False
         time.append(td.find_all("td")[0].string)
         quantity.append(td.find_all("td")[6].string)
+        value.append(td.find_all("td")[4].string)
+        variation.append(td.find_all("td")[5].string)
     
     
     data = pd.DataFrame({
             "Time":time,
-            "Quantity":quantity
+            "Quantity":quantity,
+            "Value":value,
+            "Variation":variation
             }) #股票爬蟲抓下來的時間與量
 #    print(data)
            
@@ -100,6 +114,9 @@ for no in range(len(stockNo)):
     calQuan = 0 # 計算量
     firstBool = True # 第一個量判斷用
     inputQuan = [] # 輸入的量
+    inputValue = []
+    inputVariation = []      
+        
     for i in data.index:
         if check[i] == False and firstBool == True:
             continue
@@ -108,19 +125,32 @@ for no in range(len(stockNo)):
                 calQuan += int(quantity[i])
                 firstBool = False
             else:
-                inputQuan.append(calQuan)            
+                inputQuan.append(calQuan)  
+                inputValue.append(data["Value"][i])
+                inputVariation.append(data["Variation"][i])
                 calQuan = 0
                 calQuan += int(quantity[i])
-        elif data["Time"][i] == "09:01":
+        elif data["Time"][i] == "09:01":            
             calQuan += int(quantity[i])
             inputTime.append("09:05:00")
             inputQuan.append(calQuan)
+            inputValue.append(data["Value"][i - 4])
+            inputVariation.append(data["Variation"][i - 4])
+            calQuan = 0
+        elif data["Time"][i] == "09:00":
+            calQuan += int(quantity[i])
+            inputTime.append("09:00:00")
+            inputQuan.append(calQuan)
+            inputValue.append(data["Value"][i])
+            inputVariation.append(data["Variation"][i])
             calQuan = 0
         else:
             calQuan += int(quantity[i])
          
     inputTime.reverse()
     inputQuan.reverse()
+    inputValue.reverse()
+    inputVariation.reverse()
 #    print(inputTime, inputQuan)
             
     
@@ -135,8 +165,8 @@ for no in range(len(stockNo)):
         ws = wb[stockNo[no]]
     except:        
         ws = wb.copy_worksheet(wb["計算表"])
-        ws.cell(row = 1, column = 11).value = stockNo[no]
-        ws.cell(row = 1, column = 13).value = stockName[no]
+        ws.cell(row = 1, column = 13).value = stockNo[no]
+        ws.cell(row = 1, column = 15).value = stockName[no]
         ws.title = str(stockNo[no])
     
     
@@ -145,6 +175,8 @@ for no in range(len(stockNo)):
     for i in range(1,60):
         if str(ws.cell(row = i, column = 1).value) in inputTime:
             ws.cell(row = i, column = 3).value = inputQuan[inputCount]
+            ws.cell(row = i, column = 6).value = inputValue[inputCount]
+            ws.cell(row = i, column = 7).value = inputVariation[inputCount]
             inputCount += 1
     wb.save(f'預估成交量-阿信_{date}.xlsx')
     
@@ -164,7 +196,37 @@ except:
     label = tk.Label(window, text = "Excel檔案開著，桌面檔案無法更新")
     label.pack()
     window.mainloop()
-    
+
+# 跳出視窗提示目前價格，但無法自動關閉視窗，這樣工作排程無法執行
+# =============================================================================
+# show = False
+# checkMinu = int(minute)
+# if checkMinu >= 0 and checkMinu < 10:
+#     show = True
+# elif checkMinu >= 15 and checkMinu < 20:
+#     show = True
+# elif checkMinu >= 30 and checkMinu < 35:
+#     show = True
+# elif checkMinu >= 45 and checkMinu < 50:
+#     show = True
+# 
+# if show == True:
+#     outLbl = f'{date}-{nowTime} \n'
+#     for i in range(len(stockNo)):
+#         outLbl += f'{stockNo[i]}, {stockName[i]}, {stockValue[i]} \n'
+#     window = tk.Tk()
+#     window.title("Stock")
+#     window.geometry("300x300+250+250")
+#     label = tk.Label(window, text = outLbl)
+#     label.pack()
+#     window.mainloop()
+# =============================================================================
+
+# =============================================================================
+# print(stockNo)
+# print(stockName)
+# print(stockValue)
+# =============================================================================
 
 
 # =============================================================================
